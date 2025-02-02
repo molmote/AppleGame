@@ -107,6 +107,8 @@ MonoBehaviour:
   row: 0
   number: 0
   textNumber: {fileID: 3700137177136686104}
+  spRenderer: {fileID: 2287870850922927364}
+  collider: {fileID: 93488451659190043}
 --- !u!61 &93488451659190043
 BoxCollider2D:
   m_ObjectHideFlags: 0

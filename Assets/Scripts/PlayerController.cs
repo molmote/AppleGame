@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     bool isDragging = false;
     [SerializeField] List<TileObject> tileObjects = new List<TileObject>();
+    [SerializeField] int sumTotal;
 
     TileObject previousHit;
     void Update()
@@ -14,8 +15,24 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetMouseButtonUp(0))
             {
-                 Debug.Log("Stopped Dragging");
+                if (sumTotal == 10)
+                {
+                    foreach (var tileObject in tileObjects)
+                    {
+                        tileObject.SetActive(false);
+                    }
+                }
+                else
+                {
+                    foreach (var tileObject in tileObjects)
+                    {
+                        tileObject.ToggleSelected(false);
+                    }
+                }
+
+                Debug.Log("Stopped Dragging");
                 tileObjects.Clear();
+                sumTotal = 0;
                 previousHit = null;
                 isDragging = false;
             }
@@ -23,11 +40,17 @@ public class PlayerController : MonoBehaviour
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
+                if (hit.collider == null)
+                {
+                    return;
+                }
                 var newTile = hit.collider.GetComponent<TileObject>();
                 if (hit.collider != null && previousHit != newTile)
                 {
-                    Debug.Log($"IsDragging over {hit}");
+                    //Debug.Log($"IsDragging over {hit}");
+                    newTile.ToggleSelected(true);
                     tileObjects.Add(newTile);
+                    sumTotal += newTile.GetNumber();
                 }
                 previousHit = newTile;
             }
