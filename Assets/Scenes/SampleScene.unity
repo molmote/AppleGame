@@ -1251,9 +1251,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ccabee08abd4331448b5c2fb80d6bb6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sizeColumn: 17
-  sizeRow: 11
   prefabTile: {fileID: 8357769018406067667, guid: 73ded01772655da47911ad9d09e1111c, type: 3}
+  gameData: {fileID: 11400000, guid: 0b0227ee1ef3bff468aee108a4a2fdfb, type: 2}
 --- !u!1 &140669516
 GameObject:
   m_ObjectHideFlags: 0
@@ -4133,6 +4132,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tileObjects: []
+  sumTotal: 0
+  gameData: {fileID: 11400000, guid: 0b0227ee1ef3bff468aee108a4a2fdfb, type: 2}
 --- !u!1 &527497339
 GameObject:
   m_ObjectHideFlags: 0

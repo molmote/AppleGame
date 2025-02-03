@@ -10,7 +10,8 @@ public class TileObject : MonoBehaviour
     [SerializeField] int number;
     [SerializeField] TextMeshPro textNumber;
     [SerializeField] SpriteRenderer spRenderer;
-    [SerializeField] BoxCollider2D collider;
+    [SerializeField] bool isSelected;
+    // [SerializeField] BoxCollider2D collider;
 
     public void Setup(int _col,  int _row, int _num)
     {
@@ -25,6 +26,16 @@ public class TileObject : MonoBehaviour
         return number;
     }
 
+    public int GetColumn()
+    {
+        return col;
+    }
+
+    public int GetRow()
+    {
+        return row;
+    }
+
     public void ToggleSelected(bool toggle)
     {
         Debug.Log($"change select of tile ({col},{row}) {toggle}");
@@ -36,12 +47,19 @@ public class TileObject : MonoBehaviour
         {
             spRenderer.color = new Color(0, 1f,64/255f,1f);
         }
+
+        isSelected = toggle;
+    }
+
+    public bool IsSelected()
+    {
+        return isSelected;
     }
 
     public void SetActive(bool active)
     {
         ToggleSelected(false);
-        collider.enabled = (active);
+        GetComponent<Collider2D>().enabled = (active);
         spRenderer.enabled = active;
         textNumber.gameObject.SetActive(active);
     }

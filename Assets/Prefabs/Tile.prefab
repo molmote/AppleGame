@@ -108,7 +108,7 @@ MonoBehaviour:
   number: 0
   textNumber: {fileID: 3700137177136686104}
   spRenderer: {fileID: 2287870850922927364}
-  collider: {fileID: 93488451659190043}
+  isSelected: 0
 --- !u!61 &93488451659190043
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -152,7 +152,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.15, y: 0.15}
+  m_Size: {x: 0.13, y: 0.13}
   m_EdgeRadius: 0
 --- !u!1 &8613133626394266249
 GameObject:
