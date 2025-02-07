@@ -5,13 +5,14 @@ using UnityEngine;
 
 public class TileObject : MonoBehaviour
 {
-    [SerializeField] int col;
-    [SerializeField] int row;
-    [SerializeField] int number;
+    private int col;
+    private int row;
+    private int number;
+    bool isSelected;
     [SerializeField] TextMeshPro textNumber;
     [SerializeField] SpriteRenderer spRenderer;
-    [SerializeField] bool isSelected;
-    // [SerializeField] BoxCollider2D collider;
+    [SerializeField] Collider2D myCollider;
+    [SerializeField] Color selectedColor;
 
     public void Setup(int _col,  int _row, int _num)
     {
@@ -38,14 +39,14 @@ public class TileObject : MonoBehaviour
 
     public void ToggleSelected(bool toggle)
     {
-        Debug.Log($"change select of tile ({col},{row}) {toggle}");
+        // MyLogger.Log($"change select of tile ({col},{row}) {toggle}");
         if (toggle)
         {
-            spRenderer.color = new Color( 1f,0,0,1f  );
+            spRenderer.color = Color.red;
         }
         else
         {
-            spRenderer.color = new Color(0, 1f,64/255f,1f);
+            spRenderer.color = selectedColor;
         }
 
         isSelected = toggle;
@@ -56,10 +57,15 @@ public class TileObject : MonoBehaviour
         return isSelected;
     }
 
+    public bool IsActive()
+    {
+        return myCollider.enabled;
+    }
+
     public void SetActive(bool active)
     {
         ToggleSelected(false);
-        GetComponent<Collider2D>().enabled = (active);
+        myCollider.enabled = active;
         spRenderer.enabled = active;
         textNumber.gameObject.SetActive(active);
     }

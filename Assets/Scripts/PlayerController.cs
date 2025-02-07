@@ -1,82 +1,91 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    bool isDragging = false;
-    [SerializeField] List<TileObject> tileObjects = new List<TileObject>();
-    [SerializeField] int sumTotal;
+    private bool isDragging = false;
+    private List<TileObject> tileObjects = new List<TileObject>();
+    private int sumTotal;
 
-    [SerializeField] GameData gameData;
+    [SerializeField] GameData gameData; // uses scriptable object for customized settings
 
-    TileObject lastHit;
-    TileObject firstHit;
+    private TileObject lastHit;
+    private TileObject firstHit;
 
     void Update()
     {
         if (isDragging)
         {
+            // dragging finished
             if (Input.GetMouseButtonUp(0))
             {
+                MyLogger.Log("Stopped Dragging");
+                // if scored, remove(hide) selected blocks 
                 if (sumTotal == 10)
                 {
-                    foreach (var tileObject in tileObjects)
-                    {
-                        tileObject.SetActive(false);
-                    }
+                    HideSelection();
                 }
+                // if not, just return them to unselected state
                 else
                 {
-                    foreach (var tileObject in tileObjects)
-                    {
-                        tileObject.ToggleSelected(false);
-                    }
+                    ClearSelection();
                 }
 
-                Debug.Log("Stopped Dragging");
-                tileObjects.Clear();
-                sumTotal = 0;
                 firstHit = lastHit = null;
                 isDragging = false;
             }
+            // dragging  
             else
             {
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
-                if (hit.collider == null)
+                if (hit.collider == null)   // corresponding block is not active
                 {
                     return;
                 }
                 var newTile = hit.collider.GetComponent<TileObject>();
 
-                SelectTile(newTile);
+                RefreshSelection(newTile);
             }
         }
         else
         {
+            // dragging started
             if (Input.GetMouseButtonDown(0))
             {
-                Debug.Log("Started Dragging");
+                MyLogger.Log("Started Dragging");
                 isDragging = true;
-
-                /*Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit2D hit = Physics2D.GetRayIntersection(ray, Mathf.Infinity);
-                if (hit.collider == null)
-                {
-                    return;
-                }
-                var newTile = hit.collider.GetComponent<TileObject>();
-
-                SelectTile(newTile);*/
             }
         }
     }
 
-    public void SelectTile(TileObject newTile) 
+    public void HideSelection()
     {
-        Debug.Log($"detected tile is at ({newTile.GetColumn()},{newTile.GetRow()})");
+        foreach (var tileObject in tileObjects)
+        {
+            tileObject.SetActive(false);
+        }
 
+        tileObjects.Clear();
+        sumTotal = 0;
+    }
+
+    public void ClearSelection()
+    {
+        foreach (var tileObject in tileObjects)
+        {
+            tileObject.ToggleSelected(false);
+        }
+
+        tileObjects.Clear();
+        sumTotal = 0;
+    }
+
+    public void RefreshSelection(TileObject newTile) 
+    {
+        MyLogger.Log($"detected tile is at ({newTile.GetColumn()},{newTile.GetRow()})");
+
+        // this is first selected tile
         if (firstHit == null)
         {
             firstHit = newTile;
@@ -86,11 +95,13 @@ public class PlayerController : MonoBehaviour
             tileObjects.Add(newTile);
             sumTotal += newTile.GetNumber();
         }
-
+        // the selection area is changed, add/remove tiles correspondingly
         else if (lastHit != newTile)
         {
+            // clear previous selection and sum total
+            ClearSelection();
+
             lastHit = newTile;
-            Debug.Log($"detected tile nor the first or the last, start the logic");
             int fx = firstHit.GetColumn();
             int fy = firstHit.GetRow();
             int lx = lastHit.GetColumn();
@@ -100,14 +111,16 @@ public class PlayerController : MonoBehaviour
             int endx = fx > lx ? fx : lx;
             int endy = fy > ly ? fy : ly;
 
-            Debug.Log($"start looping from ({startx},{starty}) to ({endx},{endy})");
+            MyLogger.Log($"start looping from ({startx},{starty}) to ({endx},{endy})");
             for (int i = startx; i <= endx; i++)
             {
                 for (int j = starty; j <= endy; j++)
                 {
-                    Debug.Log($"try adding ({i},{j}) tile to the queue");
+                    // MyLogger.Log($"try adding ({i},{j}) tile to the queue");
                     var tile = TileManager.Instance.GetTile(i, j);
-                    if (!tile.IsSelected()) // skip if already selected
+
+                    // doesn't add hidden block 
+                    if ( tile.IsActive() )
                     {
                         tile.ToggleSelected(true);
                         tileObjects.Add(tile);
@@ -116,9 +129,10 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+        // there is no change to selection area
         /*else
         {
-            Debug.Log($"detected tile is same as previous");
+            MyLogger.Log($"detected tile is same as previous");
         }*/
     }
 }
