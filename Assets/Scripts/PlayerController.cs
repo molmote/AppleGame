@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -12,8 +13,30 @@ public class PlayerController : MonoBehaviour
     private TileObject lastHit;
     private TileObject firstHit;
 
+    [SerializeField] TextMeshProUGUI uiTextTime;
+    [SerializeField] TextMeshProUGUI uiTextScore;
+
+    private float time = 0;
+    private int score = 0;
+
+    private void UpdateScore(int _score)
+    {
+        score += _score;
+
+        uiTextScore.text = score.ToString();
+    }
+
+    private void UpdateTime(float time)
+    {
+        uiTextTime.text = ((int)time).ToString();
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:사용되지 않는 private 멤버 제거", Justification = "<보류 중>")]
     void Update()
     {
+        time += Time.deltaTime;
+        UpdateTime(time);
+
         if (isDragging)
         {
             // dragging finished
@@ -23,6 +46,7 @@ public class PlayerController : MonoBehaviour
                 // if scored, remove(hide) selected blocks 
                 if (sumTotal == 10)
                 {
+                    UpdateScore (tileObjects.Count);
                     HideSelection();
                 }
                 // if not, just return them to unselected state
