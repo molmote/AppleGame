@@ -23,12 +23,12 @@ public class PlayerController : MonoBehaviour
     {
         score += _score;
 
-        uiTextScore.text = score.ToString();
+        uiTextScore.text = $"score: {score}";
     }
 
     private void UpdateTime(float time)
     {
-        uiTextTime.text = ((int)time).ToString();
+        uiTextTime.text = $"time elapsed: {time:N0}";
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:사용되지 않는 private 멤버 제거", Justification = "<보류 중>")]

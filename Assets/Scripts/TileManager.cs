@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class TileManager : MonoBehaviour
@@ -11,6 +13,7 @@ public class TileManager : MonoBehaviour
     [SerializeField] GameObject prefabTile;
 
     [SerializeField] GameData gameData;
+    [SerializeField] TextMeshProUGUI utTextSeed;
 
     public static TileManager Instance;
 
@@ -18,15 +21,23 @@ public class TileManager : MonoBehaviour
     void Start()
     {
         Instance = this;
-        Reset();
+        ResetTiles();
     }
 
-    private void Reset()
+    private void ResetTiles(int seed = -1)
     {
         if (tileMap == null)
         {
             tileMap = new TileObject[gameData.rowSIze, gameData.columnSIze];
         }
+
+        // if not set
+        if (seed == -1)
+        {
+            seed = (int)DateTime.Now.Ticks % 65536;
+        }
+        UnityEngine.Random.InitState(seed);
+        utTextSeed.text = $"seed: {seed}";
 
         for (int i = 0; i < gameData.rowSIze; i++)
         {
@@ -36,7 +47,7 @@ public class TileManager : MonoBehaviour
                 if (newTile != null)
                 {
                     tileMap[i,j] = newTile;
-                    newTile.Setup(j,i, Random.Range(1,10));
+                    newTile.Setup(j,i, UnityEngine.Random.Range(1,10));
                     newTile.transform.parent = transform;
                 }
             }
@@ -46,6 +57,9 @@ public class TileManager : MonoBehaviour
 
     public TileObject GetTile(int col, int row)
     {
+        if (row <= 0 || col <= 0 || row >= gameData.rowSIze || col >  gameData.columnSIze)
+            return null;
+
         return tileMap[row, col];
     }
 
