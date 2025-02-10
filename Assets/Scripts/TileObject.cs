@@ -14,6 +14,9 @@ public class TileObject : MonoBehaviour
     [SerializeField] Collider2D myCollider;
     [SerializeField] Color selectedColor;
 
+    public bool IsVisited
+        { get; set; }
+
     public void Setup(int _col,  int _row, int _num)
     {
         col = _col;
@@ -35,6 +38,11 @@ public class TileObject : MonoBehaviour
     public int GetRow()
     {
         return row;
+    }
+
+    public void ToggleSelectedOnly(bool toggle)
+    {
+        isSelected = toggle;
     }
 
     public void ToggleSelected(bool toggle)
@@ -62,11 +70,18 @@ public class TileObject : MonoBehaviour
         return myCollider.enabled;
     }
 
-    public void SetActive(bool active)
+    public void SetActive(bool active, bool showRed = false)
     {
         ToggleSelected(false);
         myCollider.enabled = active;
-        spRenderer.enabled = active;
-        textNumber.gameObject.SetActive(active);
+        if (showRed)
+        {
+            spRenderer.color = Color.red;
+        }
+        else
+        {
+            spRenderer.enabled = active;
+            textNumber.gameObject.SetActive(active);
+        }
     }
 }

@@ -57,7 +57,7 @@ public class TileManager : MonoBehaviour
 
     public TileObject GetTile(int col, int row)
     {
-        if (row <= 0 || col <= 0 || row >= gameData.rowSIze || col >  gameData.columnSIze)
+        if (row < 0 || col < 0 || row >= gameData.rowSIze || col >  gameData.columnSIze)
             return null;
 
         return tileMap[row, col];

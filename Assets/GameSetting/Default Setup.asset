@@ -15,3 +15,5 @@ MonoBehaviour:
   timer: 120
   columnSIze: 17
   rowSIze: 11
+  delayForAISelect: 1
+  delayForAIScoreAnimation: 1
