@@ -34,7 +34,7 @@ public class TileManager : MonoBehaviour
         // if not set
         if (seed == -1)
         {
-            seed = (int)DateTime.Now.Ticks % 65536;
+            seed = Math.Abs((int)DateTime.Now.Ticks % 65536);
         }
         UnityEngine.Random.InitState(seed);
         utTextSeed.text = $"seed: {seed}";

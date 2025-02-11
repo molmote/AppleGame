@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -10,6 +11,8 @@ public class AIController : MonoBehaviour
     [SerializeField] GameData gameData; // uses scriptable object for customized settings
 
     [SerializeField] TextMeshProUGUI uiTextScore;
+
+    Dictionary<Tuple<int, int>, int> valuesTable = new Dictionary<Tuple<int, int>, int>();
 
     private int score = 0;
 
@@ -66,6 +69,42 @@ public class AIController : MonoBehaviour
         selectY = -1;
     }
 
+    private int FindCostRecursively (int x, int y, int baseCost)
+    {
+        var key = new Tuple<int, int>(x, y);
+        if (valuesTable.ContainsKey(key) )
+        {
+            return valuesTable[key];
+        }
+
+        if (x == 0 && y == 0)
+        {
+            MyLogger.Log("returns 0");
+            valuesTable[key] = 0;
+            return 0;
+        }
+
+        if (x == 0)
+            return 0;
+
+        int modx = x - 1;
+        int mody = y - 1;
+        if (x < 0)
+        {
+            modx = x + 1;
+        }
+        if (y < 0)
+        {
+            mody = y + 1;
+        }
+
+        var myTile = TileManager.Instance.GetTile(x, y);
+        int myCost = FindCostRecursively(modx, y, baseCost) + FindCostRecursively(x, mody, baseCost)
+            - FindCostRecursively(modx, mody, baseCost) + myTile.GetNumber();
+
+        return myCost;
+    }
+
     public bool CheckTilesBlindly(int selectX, int selectY)
     {
         var startTile = TileManager.Instance.GetTile(selectX, selectY);
@@ -78,51 +117,85 @@ public class AIController : MonoBehaviour
         startTile.ToggleSelectedOnly(true);
         tileObjects.Add(startTile);
 
-        int compareRadius = 1;
-        //check for 8 sides if sum is 10
-        for (int x = -compareRadius; x < compareRadius; x++)
-        {
-            for (int y = -compareRadius; y < compareRadius; y++)
-            {
-                if (x == 0 && y == 0)
-                {
-                    continue;
-                }
+        int compareRadius = 10;
 
-                int lx = selectX + x;
-                int ly = selectY + y;
+        valuesTable.Clear();
+
+        int[,] dir = new int[,] { { -1, 0 }, {0,-1}, {1,0}, {0,1}, 
+            { -1, 1 }, {-1,-1}, {1,-1}, {1,1} };
+
+        for (int d = 0; d < 4; d++)
+        {
+            for (int x = 1; x < compareRadius; x++)
+            {
+                int lx = selectX + x * dir[d,0];
+                int ly = selectY + x * dir[d,1];
 
                 if (lx < 0 || ly < 0)
                 {
                     continue;
                 }
 
-                int startx = x>0 ? selectX : lx;
-                int starty = y>0 ? selectY : ly;
-                int endx = x>0 ? lx : selectX;
-                int endy = y>0 ? ly : selectY;
+                var key = new Tuple<int, int>(lx, ly);
+                // int cost = FindCostRecursively(lx, ly, scoreTotal);
 
-                MyLogger.Log($"start looping from ({startx},{starty}) to ({endx},{endy})");
-                for (int i = startx; i <= endx; i++)
+                var tileCompare = TileManager.Instance.GetTile(lx, ly);
+
+                if (tileCompare == null || tileCompare == startTile || !tileCompare.IsActive())
+                    continue;
+
+                scoreTotal += tileCompare.GetNumber();
+                if ( !valuesTable.ContainsKey(key) )
                 {
-                    for (int j = starty; j <= endy; j++)
+                    valuesTable[key] = scoreTotal;
+                }
+
+                if(scoreTotal > 10)
+                {
+                    scoreTotal = startTile.GetNumber();
+
+                    foreach (var tile in tileObjects)
                     {
-                        // MyLogger.Log($"try adding ({i},{j}) tile to the queue");
-                        var tileCompare = TileManager.Instance.GetTile(i, j);
-                        iterationsForOneSearch++;
-
-                        // doesn't add hidden block 
-                        if (tileCompare.IsActive() && startTile.GetNumber() + tileCompare.GetNumber() == 10)
-                        {
-                            tileCompare.ToggleSelectedOnly(true);
-                            tileObjects.Add(tileCompare);
-
-                            return true;
-                        }
+                        tile.ToggleSelectedOnly(false);
                     }
+                    tileObjects.Clear();
+                    tileObjects.Add(startTile);
+
+                    break;
+                }
+
+                tileCompare.ToggleSelectedOnly(true);
+                tileObjects.Add(tileCompare);
+
+                if (scoreTotal == 10)
+                {
+                    return true;
                 }
             }
         }
+
+        /*for (int d = 4; d < 8; d++)
+        {
+            for (int x = 0; x < compareRadius; x++)
+            {
+                for (int y = 0; y < compareRadius; y++)
+                {
+                    int lx = selectX + x * dir[d, 0];
+                    int ly = selectY + y * dir[d, 1];
+
+                    if (lx < 0 || ly < 0)
+                    {
+                        continue;
+                    }
+
+                    var key = new Tuple<int, int>(lx, ly);
+                    if (valuesTable.ContainsKey(key))
+                    {
+
+                    }
+                }
+            }
+        }*/
 
         startTile.ToggleSelectedOnly(false);
         tileObjects.Clear();
@@ -137,6 +210,7 @@ public class AIController : MonoBehaviour
         delay += Time.deltaTime;
         if (isSelecting && delay > gameData.delayForAISelect)
         {
+            MyLogger.Log($"last iteration:{iterationsForOneSearch}");
             isSelecting = false;
             iterationsForOneSearch = 0;
 
@@ -158,12 +232,18 @@ public class AIController : MonoBehaviour
                 Debug.Log($"Found the solution at {selectX}, {selectY}");
             }
             delay = 0;
+
+            foreach (var tile in tileObjects)
+            {
+                 tile.SetActive(false, true);
+            }
         }
         else if (!isSelecting && delay > gameData.delayForAIScoreAnimation)
         {
+
             delay = 0;
             isSelecting = true;
-            UpdateScore(2);
+            UpdateScore(tileObjects.Count);
             HideSelection();
         }
 
@@ -173,7 +253,7 @@ public class AIController : MonoBehaviour
     {
         foreach (var tileObject in tileObjects)
         {
-            tileObject.SetActive(false, true);
+            tileObject.SetActive(false);
         }
 
         tileObjects.Clear();
