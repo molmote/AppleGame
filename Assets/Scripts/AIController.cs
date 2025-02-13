@@ -6,15 +6,16 @@ using UnityEngine;
 public class AIController : MonoBehaviour
 {
     private bool isSelecting = false;
-    private List<TileObject> tileObjects = new List<TileObject>();
+    protected List<TileObject> tileObjects = new List<TileObject>();
 
-    [SerializeField] GameData gameData; // uses scriptable object for customized settings
+    [SerializeField] protected GameData gameData; // uses scriptable object for customized settings
 
-    [SerializeField] TextMeshProUGUI uiTextScore;
+    [SerializeField] protected TextMeshProUGUI uiTextTime;
+    [SerializeField] protected TextMeshProUGUI uiTextScore;
 
-    Dictionary<Tuple<int, int>, int> valuesTable = new Dictionary<Tuple<int, int>, int>();
+    protected Dictionary<Tuple<int, int>, int> valuesTable = new Dictionary<Tuple<int, int>, int>();
 
-    private int score = 0;
+    protected int score = 0;
 
     private void UpdateScore(int _score)
     {
@@ -23,7 +24,7 @@ public class AIController : MonoBehaviour
         uiTextScore.text = $"score: {score}";
     }
 
-    public void ResetVisited()
+    protected void ResetVisited()
     {
         for (int i = 0; i < gameData.columnSIze; i++)
         {
@@ -37,7 +38,7 @@ public class AIController : MonoBehaviour
         }
     }
 
-    public void SelectTilesBlindly(out int selectX, out int selectY)
+    protected void SelectTilesBlindly(out int selectX, out int selectY)
     {
         for (int i = 0; i < gameData.columnSIze; i++)
         {
@@ -69,43 +70,53 @@ public class AIController : MonoBehaviour
         selectY = -1;
     }
 
-    private int FindCostRecursively (int x, int y, int baseCost)
+    protected int FindCostRecursively (int x, int y, int sx, int sy, int baseCost)
     {
+        var myTile = TileManager.Instance.GetTile(x, y);
+        if (myTile == null)
+        {
+            return 999;
+        }
+
         var key = new Tuple<int, int>(x, y);
-        if (valuesTable.ContainsKey(key) )
+        if (valuesTable.ContainsKey(key))
         {
             return valuesTable[key];
         }
 
-        if (x == 0 && y == 0)
+        if (x == sx && y == sy)
         {
-            MyLogger.Log("returns 0");
-            valuesTable[key] = 0;
-            return 0;
+            // MyLogger.Log("returns 0");
+            // valuesTable[key] = 0;
+            return baseCost;
         }
-
-        if (x == 0)
-            return 0;
 
         int modx = x - 1;
         int mody = y - 1;
-        if (x < 0)
+        if (x <= sx)
         {
             modx = x + 1;
         }
-        if (y < 0)
+        if (y <= sy)
         {
             mody = y + 1;
         }
 
-        var myTile = TileManager.Instance.GetTile(x, y);
-        int myCost = FindCostRecursively(modx, y, baseCost) + FindCostRecursively(x, mody, baseCost)
-            - FindCostRecursively(modx, mody, baseCost) + myTile.GetNumber();
+        int myCost = myTile.GetNumber();
+        myCost += FindCostRecursively(modx, y, sx, sy, baseCost + myCost);
+        myCost += FindCostRecursively(x, mody, sx, sy, baseCost);
+        // myCost += FindCostRecursively(x, mody, sx, sy, baseCost);
+
+
+        //int myCost =  + 
+        //    - FindCostRecursively(modx, mody, baseCost) + 
+        valuesTable[key] = myCost;
+        myTile.SetTestText("${myCost}");
 
         return myCost;
     }
 
-    private void StartAgain(TileObject start, ref int scoreTotal)
+    protected void StartAgain(TileObject start, ref int scoreTotal)
     {
         scoreTotal = start.GetNumber();
         start.ToggleSelectedOnly(true);
@@ -113,7 +124,7 @@ public class AIController : MonoBehaviour
         tileObjects.Add(start);
     }
 
-    public bool CheckTilesBlindly(int selectX, int selectY)
+    protected bool CheckTilesBlindly(int selectX, int selectY)
     {
         var startTile = TileManager.Instance.GetTile(selectX, selectY);
         if (startTile == null)
@@ -183,7 +194,7 @@ public class AIController : MonoBehaviour
             StartAgain(startTile, ref scoreTotal);
         }
 
-        /*for (int d = 4; d < 8; d++)
+        for (int d = 4; d < 8; d++)
         {
             for (int x = 0; x < compareRadius; x++)
             {
@@ -192,7 +203,7 @@ public class AIController : MonoBehaviour
                     int lx = selectX + x * dir[d, 0];
                     int ly = selectY + y * dir[d, 1];
 
-                    if (lx < 0 || ly < 0)
+                    if (lx < 0 || ly < 0 || lx >= gameData.columnSIze || ly >= gameData.rowSIze)
                     {
                         continue;
                     }
@@ -204,7 +215,7 @@ public class AIController : MonoBehaviour
                     }
                 }
             }
-        }*/
+        }
 
         startTile.ToggleSelectedOnly(false);
         tileObjects.Clear();
