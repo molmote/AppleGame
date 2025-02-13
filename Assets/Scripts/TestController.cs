@@ -52,7 +52,7 @@ public class TestController : AIController
             {
                 MyLogger.Log("Stopped Dragging");
                 // if scored, remove(hide) selected blocks 
-                /*if (sumTotal == 10)
+                if (sumTotal == 10)
                 {
                     UpdateScore (tileObjects.Count);
                     HideSelection();
@@ -60,12 +60,19 @@ public class TestController : AIController
                 // if not, just return them to unselected state
                 else
                 {
-                    ClearSelection();
+                    valuesTable.Clear();
+                    CheckRecursiveLogic(firstHit, lastHit);
+
+
+                    ClearSelection(false);
                 }
 
-                firstHit = lastHit = null;*/
+                /*firstHit = lastHit = null;
                 if (firstHit != null && lastHit != null )
-                CheckRecursiveLogic(firstHit, lastHit);
+                {
+                }*/
+
+                firstHit = lastHit = null;
 
                 isDragging = false;
             }
@@ -105,11 +112,13 @@ public class TestController : AIController
         sumTotal = 0;
     }*/
 
-    public void ClearSelection()
+    public void ClearSelection(bool hideTestText)
     {
         foreach (var tileObject in tileObjects)
         {
             tileObject.ToggleSelected(false);
+            if (hideTestText)
+            tileObject.SetTestText("");
         }
 
         tileObjects.Clear();
@@ -134,7 +143,7 @@ public class TestController : AIController
         else if (lastHit != newTile)
         {
             // clear previous selection and sum total
-            ClearSelection();
+            ClearSelection(true);
 
             lastHit = newTile;
             int fx = firstHit.GetColumn();

@@ -88,7 +88,7 @@ public class AIController : MonoBehaviour
         {
             // MyLogger.Log("returns 0");
             // valuesTable[key] = 0;
-            return baseCost;
+            return 0;
         }
 
         int modx = x - 1;
@@ -103,15 +103,21 @@ public class AIController : MonoBehaviour
         }
 
         int myCost = myTile.GetNumber();
-        myCost += FindCostRecursively(modx, y, sx, sy, baseCost + myCost);
+
+        if (!myTile.IsActive())
+            myCost = 0;
+
+        if (x != sx)
+        myCost += FindCostRecursively(modx, y, sx, sy, baseCost);
+        if (y != sy)
         myCost += FindCostRecursively(x, mody, sx, sy, baseCost);
         // myCost += FindCostRecursively(x, mody, sx, sy, baseCost);
 
-
-        //int myCost =  + 
-        //    - FindCostRecursively(modx, mody, baseCost) + 
+        if (x != sx && y != sy)
+        myCost -= FindCostRecursively(modx, mody, sx, sy, baseCost);
+        // myCost += baseCost;
         valuesTable[key] = myCost;
-        myTile.SetTestText("${myCost}");
+        myTile.SetTestText($"{myCost}");
 
         return myCost;
     }

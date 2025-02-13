@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -13,6 +14,8 @@ public class TileObject : MonoBehaviour
     [SerializeField] SpriteRenderer spRenderer;
     [SerializeField] Collider2D myCollider;
     [SerializeField] Color selectedColor;
+
+    [SerializeField] TextMeshPro testTextNumber;
 
     public bool IsVisited
         { get; set; }
@@ -82,6 +85,15 @@ public class TileObject : MonoBehaviour
         {
             spRenderer.enabled = active;
             textNumber.gameObject.SetActive(active);
+        }
+    }
+
+    public void SetTestText(string text)
+    {
+        // if (testTextNumber.gameObject.activeInHierarchy)
+        {
+            testTextNumber.gameObject.SetActive(true);
+            testTextNumber.text = text;
         }
     }
 }

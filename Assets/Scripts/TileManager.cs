@@ -60,14 +60,7 @@ public class TileManager : MonoBehaviour
         if (row < 0 || col < 0 || row >= gameData.rowSIze || col >=  gameData.columnSIze)
             return null;
 
-        try
-        {
-            return tileMap[row, col];
-        }
-        catch (System.Exception e)
-        {
-            return null;
-        }
+        return tileMap[row, col];
     }
 
     // Update is called once per frame
