@@ -105,6 +105,14 @@ public class AIController : MonoBehaviour
         return myCost;
     }
 
+    private void StartAgain(TileObject start, ref int scoreTotal)
+    {
+        scoreTotal = start.GetNumber();
+        start.ToggleSelectedOnly(true);
+        tileObjects.Clear();
+        tileObjects.Add(start);
+    }
+
     public bool CheckTilesBlindly(int selectX, int selectY)
     {
         var startTile = TileManager.Instance.GetTile(selectX, selectY);
@@ -112,14 +120,13 @@ public class AIController : MonoBehaviour
         {
             return false;
         }
-        int scoreTotal = startTile.GetNumber();
-
-        startTile.ToggleSelectedOnly(true);
-        tileObjects.Add(startTile);
 
         int compareRadius = 10;
 
         valuesTable.Clear();
+
+        int scoreTotal = 0;
+        StartAgain(startTile, ref scoreTotal);
 
         int[,] dir = new int[,] { { -1, 0 }, {0,-1}, {1,0}, {0,1}, 
             { -1, 1 }, {-1,-1}, {1,-1}, {1,1} };
@@ -131,7 +138,7 @@ public class AIController : MonoBehaviour
                 int lx = selectX + x * dir[d,0];
                 int ly = selectY + x * dir[d,1];
 
-                if (lx < 0 || ly < 0)
+                if (lx < 0 || ly < 0 || lx >= gameData.columnSIze || ly >= gameData.rowSIze)
                 {
                     continue;
                 }
@@ -172,6 +179,8 @@ public class AIController : MonoBehaviour
                     return true;
                 }
             }
+
+            StartAgain(startTile, ref scoreTotal);
         }
 
         /*for (int d = 4; d < 8; d++)
