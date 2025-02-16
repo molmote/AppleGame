@@ -17,6 +17,11 @@ public class AIController : MonoBehaviour
 
     protected int score = 0;
 
+    [SerializeField] protected int targetStartX;
+    [SerializeField] protected int targetStartY;
+    [SerializeField] protected int targetEndX;
+    [SerializeField] protected int targetEndY;
+
     private void UpdateScore(int _score)
     {
         score += _score;
@@ -70,12 +75,13 @@ public class AIController : MonoBehaviour
         selectY = -1;
     }
 
-    protected int FindCostRecursively (int x, int y, int sx, int sy, int baseCost)
+    protected int FindCostRecursively (int x, int y, int sx, int sy, int baseCost, bool findAllRoutes)
     {
+        iterationsForOneSearch++;
         var myTile = TileManager.Instance.GetTile(x, y);
         if (myTile == null)
         {
-            return 999;
+            return 0;
         }
 
         var key = new Tuple<int, int>(x, y);
@@ -107,15 +113,104 @@ public class AIController : MonoBehaviour
         if (!myTile.IsActive())
             myCost = 0;
 
-        if (x != sx)
-        myCost += FindCostRecursively(modx, y, sx, sy, baseCost);
-        if (y != sy)
-        myCost += FindCostRecursively(x, mody, sx, sy, baseCost);
-        // myCost += FindCostRecursively(x, mody, sx, sy, baseCost);
 
-        if (x != sx && y != sy)
-        myCost -= FindCostRecursively(modx, mody, sx, sy, baseCost);
-        // myCost += baseCost;
+        if (!findAllRoutes)
+        {
+            int firstSum = -1;
+            int secondSum = -1;
+            int thirdSum = -1;
+            if (baseCost + myCost > 10)
+            {
+                valuesTable[key] = baseCost + myCost;
+                myTile.SetTestText($"{myCost}");
+
+                return baseCost + myCost;
+            }
+            /*else if (baseCost + myCost == 10)
+            {
+                myTile.ToggleSelectedOnly(true);
+                tileObjects.Add(myTile);
+
+                return baseCost + myCost;
+            }*/
+
+            if (x != sx)
+            {
+                firstSum = FindCostRecursively(modx, y, sx, sy, baseCost, findAllRoutes);
+                myCost += firstSum;
+
+                if (baseCost + myCost > 10)
+                {
+                    valuesTable[key] = baseCost + myCost;
+                    myTile.SetTestText($"{myCost}");
+
+                    //myTile.ToggleSelectedOnly(true);
+                    //tileObjects.Add(myTile);
+                    return baseCost + myCost;
+                }
+            }
+
+            if (y != sy)
+            {
+                secondSum = FindCostRecursively(x, mody, sx, sy, baseCost, findAllRoutes);
+                myCost += secondSum;
+
+                if (baseCost + myCost > 10)
+                {
+                    valuesTable[key] = baseCost + myCost;
+                    myTile.SetTestText($"{myCost}");
+
+                    //myTile.ToggleSelectedOnly(true);
+                    //tileObjects.Add(myTile);
+                    return baseCost + myCost;
+                }
+            }
+
+
+            if (x != sx && y != sy)
+            {
+                thirdSum = FindCostRecursively(modx, mody, sx, sy, baseCost, findAllRoutes);
+                myCost -= thirdSum;
+            }
+
+            if (baseCost + myCost > 10)
+            {
+                valuesTable[key] = baseCost + myCost;
+                myTile.SetTestText($"{myCost}");
+
+                return baseCost + myCost;
+            }
+            
+            if (baseCost + myCost == 10)
+            {
+                int j = 0;
+            }
+
+            myTile.ToggleSelectedOnly(true);
+            tileObjects.Add(myTile);
+
+            /*if (myCost >= 10)
+            {
+                valuesTable[key] = myCost;
+                myTile.SetTestText($"{myCost}");
+                return myCost;
+            }*/
+            valuesTable[key] = myCost;
+            myTile.SetTestText($"{myCost}");
+            return baseCost + myCost;
+        }
+        else
+        {
+            if (x != sx)
+                myCost += FindCostRecursively(modx, y, sx, sy, baseCost, findAllRoutes);
+
+            if (y != sy)
+                myCost += FindCostRecursively(x, mody, sx, sy, baseCost, findAllRoutes);
+
+            if (x != sx && y != sy)
+                myCost -= FindCostRecursively(modx, mody, sx, sy, baseCost, findAllRoutes);
+        }
+
         valuesTable[key] = myCost;
         myTile.SetTestText($"{myCost}");
 
@@ -126,6 +221,12 @@ public class AIController : MonoBehaviour
     {
         scoreTotal = start.GetNumber();
         start.ToggleSelectedOnly(true);
+
+        foreach (var tile in tileObjects)
+        {
+            tile.ToggleSelectedOnly(false);
+        }
+
         tileObjects.Clear();
         tileObjects.Add(start);
     }
@@ -200,6 +301,7 @@ public class AIController : MonoBehaviour
             StartAgain(startTile, ref scoreTotal);
         }
 
+        StartAgain(startTile, ref scoreTotal);
         for (int d = 4; d < 8; d++)
         {
             for (int x = 0; x < compareRadius; x++)
@@ -209,16 +311,49 @@ public class AIController : MonoBehaviour
                     int lx = selectX + x * dir[d, 0];
                     int ly = selectY + y * dir[d, 1];
 
+                    var tileCompare = TileManager.Instance.GetTile(lx, ly);
+                    if (tileCompare == null || tileCompare == startTile || !tileCompare.IsActive())
+                        continue;
+
+                    if (selectX != 0 && selectX == targetStartX && selectY == targetStartY &&
+                        lx == targetEndX && ly == targetEndY)
+                    {
+                        int j = 0;
+                    }
+
                     if (lx < 0 || ly < 0 || lx >= gameData.columnSIze || ly >= gameData.rowSIze)
                     {
                         continue;
                     }
 
+                    int cost = startTile.GetNumber();
                     var key = new Tuple<int, int>(lx, ly);
                     if (valuesTable.ContainsKey(key))
                     {
+                        //cost += valuesTable[key];
 
+                        //myTile.ToggleSelectedOnly(true);
+                        //tileObjects.Add(myTile);
+
+                        // continue;
                     }
+                    else
+                    {
+                        cost = FindCostRecursively(lx, ly, selectX, selectY, cost, false);
+                    }
+
+                    if (cost == 10)
+                    {
+                        MyLogger.Log($"Found the solution at ({selectX},{selectY}) -> ({lx},{ly}) Following nodes were selected ...");
+                        foreach(var nodes in tileObjects)
+                        {
+                            MyLogger.Log($"({nodes.GetColumn()},{nodes.GetRow()})");
+                        }
+                        Debug.Break();
+                        return true;
+                    }
+
+                    StartAgain(startTile, ref scoreTotal);
                 }
             }
         }
@@ -236,7 +371,6 @@ public class AIController : MonoBehaviour
         delay += Time.deltaTime;
         if (isSelecting && delay > gameData.delayForAISelect)
         {
-            MyLogger.Log($"last iteration:{iterationsForOneSearch}");
             isSelecting = false;
             iterationsForOneSearch = 0;
 
@@ -249,13 +383,13 @@ public class AIController : MonoBehaviour
             }
 
             ResetVisited();
+            MyLogger.Log($"last iteration:{iterationsForOneSearch}");
             if (nextSolution)
             {
                 Debug.LogError("Can't find solution");
             }
             else
             {
-                Debug.Log($"Found the solution at {selectX}, {selectY}");
             }
             delay = 0;
 

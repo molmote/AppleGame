@@ -36,11 +36,12 @@ public class TestController : AIController
         var key = new Tuple<int, int>(endx, endy);
         if (!valuesTable.ContainsKey(key))
         {
-            int cost = FindCostRecursively(endx, endy, sx, sy, 0);
+            int cost = FindCostRecursively(endx, endy, sx, sy, 
+                startTile.GetNumber(), false);
         }
     }
     
-    void Update()
+    public void Update()
     {
         time += Time.deltaTime;
         UpdateTime(time);

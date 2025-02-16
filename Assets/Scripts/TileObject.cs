@@ -26,6 +26,8 @@ public class TileObject : MonoBehaviour
         row = _row;
         number = _num;
         textNumber.text = $"{number}";
+
+        gameObject.name = $"({_col}, {_row}) - {_num}";
     }
 
     public int GetNumber()
